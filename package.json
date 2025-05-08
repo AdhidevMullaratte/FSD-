@@ -1,7 +1,7 @@
 {
   "name": "viticareapp",
   "version": "0.1.0",
-  "proxy": "http://localhost:5001", 
+  "proxy": "http://localhost:5001",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
@@ -11,9 +11,11 @@
     "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
+    "docx": "^9.5.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongoose": "^8.13.2",
+    "morgan": "^1.10.0",
     "react": "^19.0.0",
     "react-calendar": "^5.1.0",
     "react-dom": "^19.0.0",
@@ -45,5 +47,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
