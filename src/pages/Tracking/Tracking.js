@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "./Tracking.css";
 
 const Tracking = () => {
+  // State for form data
   const [beforeFile, setBeforeFile] = useState(null);
   const [afterFile, setAfterFile] = useState(null);
   const [beforePreview, setBeforePreview] = useState(null);
@@ -68,9 +69,10 @@ const Tracking = () => {
         document.body.appendChild(a);
         a.click();
         a.remove();
+        window.URL.revokeObjectURL(url);
       } else {
         const errData = await response.json();
-        setError("Tracking failed: " + errData.error || "Unknown error occurred.");
+        setError("Tracking failed: " + (errData.error || "Unknown error occurred."));
       }
     } catch (err) {
       console.error("Upload Error:", err);
@@ -94,17 +96,28 @@ const Tracking = () => {
         <div className="form-section">
           <div className="form-group">
             <label>Name:</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+            <input 
+              type="text" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+            />
           </div>
 
           <div className="form-group">
             <label>Age:</label>
-            <input type="number" value={age} onChange={(e) => setAge(e.target.value)} />
+            <input 
+              type="number" 
+              value={age} 
+              onChange={(e) => setAge(e.target.value)} 
+            />
           </div>
 
           <div className="form-group">
             <label>Gender:</label>
-            <select value={gender} onChange={(e) => setGender(e.target.value)}>
+            <select 
+              value={gender} 
+              onChange={(e) => setGender(e.target.value)}
+            >
               <option value="">Select</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
@@ -117,16 +130,32 @@ const Tracking = () => {
           <div className="upload-box">
             <h3>BEFORE PICTURE</h3>
             <label className="upload-label">
-              <input type="file" accept="image/*" onChange={handleBeforeImageUpload} />
-              {beforePreview ? <img src={beforePreview} alt="Before" className="preview-img" /> : "UPLOAD"}
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleBeforeImageUpload} 
+              />
+              {beforePreview ? (
+                <img src={beforePreview} alt="Before" className="preview-img" />
+              ) : (
+                "UPLOAD"
+              )}
             </label>
           </div>
 
           <div className="upload-box">
             <h3>AFTER PICTURE</h3>
             <label className="upload-label">
-              <input type="file" accept="image/*" onChange={handleAfterImageUpload} />
-              {afterPreview ? <img src={afterPreview} alt="After" className="preview-img" /> : "UPLOAD"}
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleAfterImageUpload} 
+              />
+              {afterPreview ? (
+                <img src={afterPreview} alt="After" className="preview-img" />
+              ) : (
+                "UPLOAD"
+              )}
             </label>
           </div>
         </div>
@@ -144,7 +173,11 @@ const Tracking = () => {
         {error && <p className="error-message">{error}</p>}
 
         <div className="enter-button-wrapper">
-          <button className="enter-button" onClick={handleEnterClick} disabled={isLoading}>
+          <button 
+            className="enter-button" 
+            onClick={handleEnterClick} 
+            disabled={isLoading}
+          >
             {isLoading ? "Processing..." : "ENTER"}
           </button>
         </div>
