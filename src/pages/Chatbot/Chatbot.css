@@ -1,0 +1,126 @@
+.chatbot-container {
+  background: url("../../assets/chatbot-bg.png") no-repeat center center/cover;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.our-services-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #64b5f6;
+  color: black;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease;
+}
+
+.our-services-btn:hover {
+  background-color: #0077b6;
+  color: white;
+}
+
+.chatbox {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 20px;
+  width: 350px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-title {
+  background-color: #64b5f6;
+  padding: 10px;
+  border-radius: 15px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.message-container {
+  height: 300px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: #e3f2fd;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user, .bot {
+  padding: 10px;
+  border-radius: 12px;
+  max-width: 80%;
+  font-weight: bold;
+  word-wrap: break-word;
+}
+
+.user {
+  background-color: #bbdefb;
+  align-self: flex-end;
+  text-align: right;
+  color: #0077b6;
+}
+
+.bot {
+  background-color: #ffffff;
+  align-self: flex-start;
+  text-align: left;
+  color: black;
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.send-btn {
+  background-color: #64b5f6;
+  color: black;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.send-btn:hover {
+  background-color: #0077b6;
+  color: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .chatbox {
+    width: 90%;
+    padding: 15px;
+  }
+
+  .chatbot-title {
+    font-size: 18px;
+  }
+
+  input {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .message-container {
+    height: 250px;
+  }
+}

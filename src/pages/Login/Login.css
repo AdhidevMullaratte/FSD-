@@ -1,0 +1,188 @@
+/* Full-page container */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: url('../../assets/register-bg.png') no-repeat center center/cover;
+    position: relative;
+}
+
+/* Overlay to reduce opacity */
+.auth-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5); /* Adjust opacity */
+    z-index: 1;
+}
+
+/* Content Wrapper for Logo & Login */
+.auth-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Logo Box */
+.logo-box {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    text-align: center;
+}
+
+.logo {
+    width: 150px;
+    height: auto;
+}
+
+/* White box for login form */
+.auth-box {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    text-align: center;
+}
+
+/* Login Heading */
+.auth-box h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Input Fields */
+.auth-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none;
+}
+
+/* Focus effect */
+.auth-box input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Login Button */
+.auth-box button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+/* Hover effect */
+.auth-box button:hover {
+    background-color: #0056b3;
+}
+
+/* Register Link */
+.auth-box p {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.auth-box a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-box a:hover {
+    text-decoration: underline;
+}
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+  }
+  
+  .auth-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .logo-box {
+    margin-bottom: 20px;
+  }
+  
+  .logo {
+    width: 150px;
+    height: auto;
+  }
+  
+  .auth-box {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+  }
+  
+  .auth-box h2 {
+    margin-bottom: 20px;
+  }
+  
+  .auth-box input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .auth-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .auth-box button:hover {
+    background-color: #45a049;
+  }
+  
+  .auth-box .login-message {
+    margin-bottom: 10px;
+    color: #f44336;
+  }
+  
+  .auth-box a {
+    color: #007BFF;
+    text-decoration: none;
+    margin-top: 10px;
+  }
+  
+  .auth-box a:hover {
+    text-decoration: underline;
+  }
+  

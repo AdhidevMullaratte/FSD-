@@ -1,0 +1,255 @@
+.consultation-container {
+  background-color: #e3f2fd;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+}
+
+.header-buttons {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.top-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+  width: 150px;
+}
+
+.logout, .services {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.logout:hover, .services:hover {
+  background-color: #d93636;
+  transform: scale(1.05);
+}
+
+h2 {
+  color: #1565c0;
+  margin-top: 50px;
+}
+
+.consultation-description {
+  color: #333;
+  margin-bottom: 30px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.doctor-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.doctor-card {
+  background-color: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  width: 320px;
+}
+
+.doctor-card:hover {
+  transform: translateY(-5px);
+}
+
+.doctor-img-box {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  overflow: hidden;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  border: 3px solid white;
+}
+
+.doctor-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.inner-box {
+  background-color: #90caf9;
+  padding: 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.inner-box:hover {
+  background-color: #64b5f6;
+  transform: scale(1.02);
+}
+
+.appointment-btn {
+  margin-top: 15px;
+  background-color: #1565c0;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.appointment-btn:hover {
+  background-color: #0d47a1;
+  transform: translateY(-2px);
+}
+
+.arrow-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #1565c0;
+  transition: transform 0.2s ease;
+}
+
+.arrow-btn:hover {
+  transform: scale(1.2);
+}
+
+.booking-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+  width: 380px;
+  max-width: 90%;
+  z-index: 100;
+}
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.time-slot-btn {
+  background: #64b5f6;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  position: relative;
+}
+
+.time-slot-btn:hover {
+  background: #42a5f5;
+  transform: translateY(-2px);
+}
+
+.time-slot-btn.selected {
+  background: #0d47a1;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #0d47a1;
+}
+
+.time-slot-btn:disabled {
+  background: #e0e0e0;
+  color: #9e9e9e;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.booked-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff5252;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn {
+  background: #1565c0;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+
+.close-btn:hover {
+  background: #0d47a1;
+  transform: translateY(-2px);
+}
+
+.book-appointment-btn {
+  background: #4caf50;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+  font-weight: bold;
+  width: 100%;
+}
+
+.book-appointment-btn:hover:not(:disabled) {
+  background: #388e3c;
+  transform: translateY(-2px);
+}
+
+.book-appointment-btn:disabled {
+  background: #81c784;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.react-calendar {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  margin: 15px auto;
+  max-width: 100%;
+}
+
+.react-calendar__tile--active {
+  background: #1565c0;
+  color: white;
+}
+
+.react-calendar__tile--now {
+  background: #ffcc80;
+}

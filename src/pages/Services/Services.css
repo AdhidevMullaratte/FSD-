@@ -1,0 +1,96 @@
+/* Container styling */
+.services-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #e3f2fd; /* Light blue background */
+    position: relative;
+  }
+  
+  /* Logout Button */
+  .logout-button {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+  }
+  
+  .logout-button:hover {
+    background-color: #d93636;
+    transform: scale(1.1);
+  }
+  
+  /* Service Box */
+  .services-box {
+    text-align: center;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+  }
+  
+  /* Heading */
+  h2 {
+    color: #0077b6;
+    margin-bottom: 15px;
+  }
+  
+  /* Description */
+  .services-description {
+    color: #555;
+    font-size: 16px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  
+  /* Service Button Container */
+  .service-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  /* Service Buttons */
+  .service-button {
+    width: 150px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background-color: #90caf9; /* Light blue */
+    border-radius: 10px;
+    transition: 0.3s ease-in-out;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .service-button:hover {
+    background-color: #64b5f6; /* Slightly darker blue */
+    transform: scale(1.05);
+  }
+  
+  /* Service Images */
+  .service-img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  
+  /* Button Text */
+  .service-button span {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+  }
+  
