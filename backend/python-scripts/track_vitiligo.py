@@ -5,10 +5,11 @@ import numpy as np
 import base64
 from docx import Document
 from docx.shared import Inches
-import tempfile
-from PIL import Image
 import os
 import traceback
+import pickle
+import warnings
+from PIL import Image
 
 DEBUG = True
 
@@ -39,104 +40,123 @@ def numpy_to_pil(image_np):
         log_debug(f"Error in numpy_to_pil: {str(e)}")
         raise
 
-def segment_vitiligo(image):
-    log_debug("Segmenting vitiligo areas")
+def to_grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+def segment_and_draw_contours(gray_img):
+    _, thresh = cv2.threshold(gray_img, 180, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    mask = cv2.cvtColor(gray_img, cv2.COLOR_GRAY2BGR)
+    cv2.drawContours(mask, contours, -1, (0, 0, 255), 2)
+    area = sum(cv2.contourArea(c) for c in contours)
+    return mask, float(area)
+
+def get_non_black_area(gray_img):
+    _, black_mask = cv2.threshold(gray_img, 50, 255, cv2.THRESH_BINARY_INV)
+    contours, _ = cv2.findContours(black_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    black_area = sum(cv2.contourArea(c) for c in contours)
+    total_area = float(gray_img.shape[0] * gray_img.shape[1])
+    return total_area - float(black_area)
+
+def calculate_speed_rate(before_area, after_area, weeks):
     try:
-        # Convert to LAB color space - often better for skin condition detection
-        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        weeks = float(weeks)
+        before_area = float(before_area)
+        after_area = float(after_area)
         
-        # Split channels
-        l, a, b = cv2.split(lab)
+        if before_area > 0 and weeks > 0:
+            return ((after_area - before_area) / before_area) * 100 / weeks
+        return 0.0
+    except (ValueError, TypeError) as e:
+        log_debug(f"Error in calculate_speed_rate: {str(e)}")
+        return 0.0
+
+def load_model(model_path=None):
+    try:
+        if model_path is None:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            model_path = os.path.join(script_dir, 'viti.pkl')
         
-        # Apply thresholding on the L channel (lightness)
-        _, thresh = cv2.threshold(l, 180, 255, cv2.THRESH_BINARY)
+        log_debug(f"Attempting to load model from: {model_path}")
         
-        # Morphological operations to clean up the mask
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-        thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at: {model_path}")
+            
+        with open(model_path, 'rb') as file:
+            model_bundle = pickle.load(file)
+            
+        # Verify model bundle structure
+        if 'model' not in model_bundle or 'label_encoder_treatment' not in model_bundle:
+            raise ValueError("Model bundle is missing required components")
+            
+        log_debug("Model loaded successfully")
+        return model_bundle
         
-        # Create segmented image (highlight affected areas in red)
-        segmented = image.copy()
-        segmented[thresh == 255] = (0, 0, 255)  # Highlight in red
-        
-        # Create overlay with transparency
-        overlay = image.copy()
-        cv2.addWeighted(segmented, 0.5, overlay, 0.5, 0, overlay)
-        
-        log_debug("Successfully segmented vitiligo areas")
-        return thresh, overlay
     except Exception as e:
-        log_debug(f"Error in segment_vitiligo: {str(e)}")
+        log_debug(f"Model loading failed: {str(e)}")
         raise
 
-def calculate_affected_area(mask):
-    log_debug("Calculating affected area")
-    try:
-        area = cv2.countNonZero(mask)
-        log_debug(f"Calculated affected area: {area} pixels")
-        return area
-    except Exception as e:
-        log_debug(f"Error in calculate_affected_area: {str(e)}")
-        raise
-
-def generate_report(name, age, gender, weeks, before_image, after_image, before_segmented, after_segmented, change_percentage):
+def generate_report(name, age, gender, weeks, before_image, after_image, 
+                   before_segmented, after_segmented, change_percentage, treatment_recommendation):
     log_debug("Starting report generation")
     try:
         doc = Document()
         doc.add_heading('Vitiligo Progress Report', 0)
 
-        # Add patient info
-        doc.add_paragraph(f"Name: {name}", style='Heading 2')
-        doc.add_paragraph(f"Age: {age}")
+        # Patient Information
+        doc.add_heading('Patient Information', level=1)
+        doc.add_paragraph(f"Name: {name}")
+        doc.add_paragraph(f"Age: {int(age)}")
         doc.add_paragraph(f"Gender: {gender}")
-        doc.add_paragraph(f"Weeks Between Photos: {weeks}")
-        doc.add_paragraph(f"Change in Affected Area: {change_percentage:.2f}%", style='Heading 3')
+        doc.add_paragraph(f"Duration Between Photos: {float(weeks):.1f} weeks")
 
-        # Create reports directory if not exists
-        reports_dir = os.path.join(os.path.dirname(__file__), 'generated_reports')
+        # Treatment Recommendation
+        doc.add_heading('Treatment Recommendation', level=1)
+        doc.add_paragraph(treatment_recommendation)
+
+        # Progress Summary
+        doc.add_heading('Progress Summary', level=1)
+        doc.add_paragraph(f"Change in Affected Area: {float(change_percentage):.2f}%")
+
+        # Create reports directory if it doesn't exist
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        reports_dir = os.path.join(script_dir, 'generated_reports')
         os.makedirs(reports_dir, exist_ok=True)
-        log_debug(f"Reports directory: {reports_dir}")
 
-        # Add before images section
+        # Before Treatment Images
         doc.add_heading('Before Treatment', level=2)
         
-        # Original before image
         before_temp = os.path.join(reports_dir, 'before_temp.png')
         numpy_to_pil(before_image).save(before_temp)
         doc.add_paragraph("Original Image:")
         doc.add_picture(before_temp, width=Inches(3))
         
-        # Segmented before image
         before_seg_temp = os.path.join(reports_dir, 'before_seg_temp.png')
         numpy_to_pil(before_segmented).save(before_seg_temp)
         doc.add_paragraph("Segmented Image (affected areas in red):")
         doc.add_picture(before_seg_temp, width=Inches(3))
 
-        # Add after images section
+        # After Treatment Images
         doc.add_heading('After Treatment', level=2)
-        
-        # Original after image
         after_temp = os.path.join(reports_dir, 'after_temp.png')
         numpy_to_pil(after_image).save(after_temp)
         doc.add_paragraph("Original Image:")
         doc.add_picture(after_temp, width=Inches(3))
         
-        # Segmented after image
         after_seg_temp = os.path.join(reports_dir, 'after_seg_temp.png')
         numpy_to_pil(after_segmented).save(after_seg_temp)
         doc.add_paragraph("Segmented Image (affected areas in red):")
         doc.add_picture(after_seg_temp, width=Inches(3))
 
-        # Clean up temp files
-        os.remove(before_temp)
-        os.remove(before_seg_temp)
-        os.remove(after_temp)
-        os.remove(after_seg_temp)
+        # Clean up temporary files
+        for temp_file in [before_temp, before_seg_temp, after_temp, after_seg_temp]:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
 
-        # Save final report
-        report_path = os.path.join(reports_dir, f"{name}_vitiligo_report.docx")
+        # Save the final report
+        report_path = os.path.join(reports_dir, f"{name.replace(' ', '_')}_vitiligo_report.docx")
         doc.save(report_path)
+        
         log_debug(f"Report successfully generated at: {report_path}")
         return report_path
 
@@ -146,62 +166,84 @@ def generate_report(name, age, gender, weeks, before_image, after_image, before_
 
 def main():
     try:
-        log_debug("\n==== Starting Vitiligo Analysis ====")
-        log_debug("Reading input data from stdin...")
-        input_data = sys.stdin.read()
-        log_debug(f"Raw input length: {len(input_data)} chars")
+        warnings.filterwarnings("ignore", category=UserWarning)
         
+        log_debug("\n==== Starting Vitiligo Analysis ====")
+        input_data = sys.stdin.read()
         data = json.loads(input_data)
-        log_debug(f"Parsed JSON data for patient: {data['name']}")
+        
+        # Convert all numeric inputs to proper types
+        data['age'] = int(data.get('age', 0))
+        data['weeks'] = float(data.get('weeks', 0))
+        
+        log_debug(f"Processing data for patient: {data['name']}")
 
-        log_debug("\nProcessing before image...")
+        # Process images
         before_image = base64_to_image(data['before_image'])
-        log_debug(f"Before image dimensions: {before_image.shape}")
-
-        log_debug("\nProcessing after image...")
         after_image = base64_to_image(data['after_image'])
-        log_debug(f"After image dimensions: {after_image.shape}")
+        
+        # Convert to grayscale
+        before_gray = to_grayscale(before_image)
+        after_gray = to_grayscale(after_image)
 
-        log_debug("\nSegmenting images...")
-        before_mask, before_segmented = segment_vitiligo(before_image)
-        after_mask, after_segmented = segment_vitiligo(after_image)
+        # Segment images and calculate areas
+        before_mask, before_area = segment_and_draw_contours(before_gray)
+        after_mask, after_area = segment_and_draw_contours(after_gray)
+        
+        # Calculate valid skin area
+        valid_area = get_non_black_area(after_gray)
+        
+        # Calculate percentages and speed rate
+        percent_before = (float(before_area) / float(valid_area)) * 100 if valid_area > 0 else 0.0
+        percent_after = (float(after_area) / float(valid_area)) * 100 if valid_area > 0 else 0.0
+        change_percentage = ((float(after_area) - float(before_area)) / float(before_area)) * 100 if before_area > 0 else 0.0
+        speed_rate = calculate_speed_rate(before_area, after_area, data['weeks'])
 
-        log_debug("\nCalculating affected areas...")
-        before_area = calculate_affected_area(before_mask)
-        after_area = calculate_affected_area(after_mask)
-        log_debug(f"Before area: {before_area} | After area: {after_area}")
+        # Load model and make prediction
+        model_bundle = load_model()
+        features = np.array([[
+            float(data['age']), 
+            float(data['weeks']), 
+            float(speed_rate), 
+            float(percent_before), 
+            float(percent_after)
+        ]])
+        
+        predicted_label = model_bundle['model'].predict(features)[0]
+        treatment_recommendation = model_bundle['label_encoder_treatment'].inverse_transform([predicted_label])[0]
 
-        change_percentage = ((after_area - before_area) / before_area) * 100 if before_area != 0 else 0
-        log_debug(f"Change percentage: {change_percentage:.2f}%")
-
-        log_debug("\nGenerating report...")
+        # Generate report
         report_path = generate_report(
-            data['name'], data['age'], data['gender'], data['weeks'],
-            before_image, after_image, before_segmented, after_segmented, change_percentage
+            data['name'], 
+            data['age'], 
+            data.get('gender', ''), 
+            data['weeks'],
+            before_image, 
+            after_image, 
+            before_mask, 
+            after_mask, 
+            change_percentage, 
+            treatment_recommendation
         )
 
-        log_debug("\n==== Analysis Complete ====")
-        log_debug(f"Final report path: {report_path}")
+        # Return results
         print(json.dumps({
             "status": "success",
             "report_path": report_path,
-            "before_area": before_area,
-            "after_area": after_area,
-            "change_percentage": change_percentage
+            "before_area": float(before_area),
+            "after_area": float(after_area),
+            "change_percentage": float(change_percentage),
+            "treatment_recommendation": treatment_recommendation,
+            "speed_rate": float(speed_rate)
         }))
-        sys.stdout.flush()
 
     except Exception as e:
-        log_debug("\n==== ERROR OCCURRED ====")
-        log_debug(f"Error type: {type(e).__name__}")
-        log_debug(f"Error message: {str(e)}")
-        log_debug(f"Traceback:\n{traceback.format_exc()}")
+        log_debug(f"\n==== ERROR OCCURRED ====\n{traceback.format_exc()}")
         print(json.dumps({
             "status": "error",
-            "message": str(e)
+            "message": str(e),
+            "traceback": traceback.format_exc()
         }))
-        sys.exit(1)
 
-if __name__ == '__main__':
-    log_debug("Vitiligo Tracking Script Initialized")
+if __name__ == "__main__":
     main()
