@@ -39,50 +39,100 @@ def numpy_to_pil(image_np):
         log_debug(f"Error in numpy_to_pil: {str(e)}")
         raise
 
-def calculate_affected_area(image):
+def segment_vitiligo(image):
+    log_debug("Segmenting vitiligo areas")
+    try:
+        # Convert to LAB color space - often better for skin condition detection
+        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        
+        # Split channels
+        l, a, b = cv2.split(lab)
+        
+        # Apply thresholding on the L channel (lightness)
+        _, thresh = cv2.threshold(l, 180, 255, cv2.THRESH_BINARY)
+        
+        # Morphological operations to clean up the mask
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
+        
+        # Create segmented image (highlight affected areas in red)
+        segmented = image.copy()
+        segmented[thresh == 255] = (0, 0, 255)  # Highlight in red
+        
+        # Create overlay with transparency
+        overlay = image.copy()
+        cv2.addWeighted(segmented, 0.5, overlay, 0.5, 0, overlay)
+        
+        log_debug("Successfully segmented vitiligo areas")
+        return thresh, overlay
+    except Exception as e:
+        log_debug(f"Error in segment_vitiligo: {str(e)}")
+        raise
+
+def calculate_affected_area(mask):
     log_debug("Calculating affected area")
     try:
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        area = sum(cv2.contourArea(c) for c in contours)
+        area = cv2.countNonZero(mask)
         log_debug(f"Calculated affected area: {area} pixels")
         return area
     except Exception as e:
         log_debug(f"Error in calculate_affected_area: {str(e)}")
         raise
 
-def generate_report(name, age, gender, weeks, before_image, after_image, change_percentage):
+def generate_report(name, age, gender, weeks, before_image, after_image, before_segmented, after_segmented, change_percentage):
     log_debug("Starting report generation")
     try:
         doc = Document()
         doc.add_heading('Vitiligo Progress Report', 0)
 
         # Add patient info
-        doc.add_paragraph(f"Name: {name}")
+        doc.add_paragraph(f"Name: {name}", style='Heading 2')
         doc.add_paragraph(f"Age: {age}")
         doc.add_paragraph(f"Gender: {gender}")
         doc.add_paragraph(f"Weeks Between Photos: {weeks}")
-        doc.add_paragraph(f"Change in Affected Area: {change_percentage:.2f}%")
+        doc.add_paragraph(f"Change in Affected Area: {change_percentage:.2f}%", style='Heading 3')
 
         # Create reports directory if not exists
         reports_dir = os.path.join(os.path.dirname(__file__), 'generated_reports')
         os.makedirs(reports_dir, exist_ok=True)
         log_debug(f"Reports directory: {reports_dir}")
 
-        # Process before image
+        # Add before images section
+        doc.add_heading('Before Treatment', level=2)
+        
+        # Original before image
         before_temp = os.path.join(reports_dir, 'before_temp.png')
         numpy_to_pil(before_image).save(before_temp)
-        doc.add_paragraph("Before Image:")
+        doc.add_paragraph("Original Image:")
         doc.add_picture(before_temp, width=Inches(3))
-        os.remove(before_temp)
+        
+        # Segmented before image
+        before_seg_temp = os.path.join(reports_dir, 'before_seg_temp.png')
+        numpy_to_pil(before_segmented).save(before_seg_temp)
+        doc.add_paragraph("Segmented Image (affected areas in red):")
+        doc.add_picture(before_seg_temp, width=Inches(3))
 
-        # Process after image
+        # Add after images section
+        doc.add_heading('After Treatment', level=2)
+        
+        # Original after image
         after_temp = os.path.join(reports_dir, 'after_temp.png')
         numpy_to_pil(after_image).save(after_temp)
-        doc.add_paragraph("After Image:")
+        doc.add_paragraph("Original Image:")
         doc.add_picture(after_temp, width=Inches(3))
+        
+        # Segmented after image
+        after_seg_temp = os.path.join(reports_dir, 'after_seg_temp.png')
+        numpy_to_pil(after_segmented).save(after_seg_temp)
+        doc.add_paragraph("Segmented Image (affected areas in red):")
+        doc.add_picture(after_seg_temp, width=Inches(3))
+
+        # Clean up temp files
+        os.remove(before_temp)
+        os.remove(before_seg_temp)
         os.remove(after_temp)
+        os.remove(after_seg_temp)
 
         # Save final report
         report_path = os.path.join(reports_dir, f"{name}_vitiligo_report.docx")
@@ -112,9 +162,13 @@ def main():
         after_image = base64_to_image(data['after_image'])
         log_debug(f"After image dimensions: {after_image.shape}")
 
+        log_debug("\nSegmenting images...")
+        before_mask, before_segmented = segment_vitiligo(before_image)
+        after_mask, after_segmented = segment_vitiligo(after_image)
+
         log_debug("\nCalculating affected areas...")
-        before_area = calculate_affected_area(before_image)
-        after_area = calculate_affected_area(after_image)
+        before_area = calculate_affected_area(before_mask)
+        after_area = calculate_affected_area(after_mask)
         log_debug(f"Before area: {before_area} | After area: {after_area}")
 
         change_percentage = ((after_area - before_area) / before_area) * 100 if before_area != 0 else 0
@@ -123,7 +177,7 @@ def main():
         log_debug("\nGenerating report...")
         report_path = generate_report(
             data['name'], data['age'], data['gender'], data['weeks'],
-            before_image, after_image, change_percentage
+            before_image, after_image, before_segmented, after_segmented, change_percentage
         )
 
         log_debug("\n==== Analysis Complete ====")
